@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+      # This next line is the fix. It prevents the local node_modules
+      # from overwriting the one in the container.
       - /app/node_modules
       - /app/.next
     environment:
@@ -19,13 +21,14 @@ services:
   backend:
     build:
       context: ./backend
-    # Pass environment variables from the .env file to the container
     env_file:
       - ./backend/.env
     ports:
       - "3001:3001"
     volumes:
       - ./backend:/app
+      # This next line is the fix. It prevents the local node_modules
+      # from overwriting the one in the container.
       - /app/node_modules
     environment:
       - NODE_ENV=development
