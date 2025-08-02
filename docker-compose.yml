@@ -1,0 +1,28 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Frontend Service (Next.js)
+  frontend:
+    build:
+      context: ./frontend # Path to the frontend code and Dockerfile
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000
+    volumes:
+      - ./frontend:/app # Mount local code into the container for live-reloading
+      - /app/node_modules # Do not overwrite the container's node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+
+  # Backend Service (Node.js)
+  backend:
+    build:
+      context: ./backend # Path to the backend code and Dockerfile
+    ports:
+      - "3001:3001" # Map host port 3001 to container port 3001
+    volumes:
+      - ./backend:/app # Mount local code into the container for live-reloading
+      - /app/node_modules # Do not overwrite the container's node_modules
+    environment:
+      - NODE_ENV=development
