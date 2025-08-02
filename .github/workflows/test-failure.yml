@@ -1,0 +1,15 @@
+name: Test Failure Workflow
+
+on:
+  push:
+    branches:
+      - main # Or whatever your main branch is called
+
+jobs:
+  fail-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Always Fail Step
+        run: |
+          echo "This workflow is designed to fail."
+          exit 1
