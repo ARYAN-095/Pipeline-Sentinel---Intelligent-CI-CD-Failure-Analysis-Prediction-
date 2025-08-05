@@ -71,6 +71,7 @@ app.get('/api/auth/github/callback', async (req, res) => {
 app.post('/api/webhooks/github', async (req, res) => {
     // FIXED: The body is now already a JSON object thanks to express.json(), so we don't need to parse it.
     const event = req.body;
+    const eventType = req.headers['x-github-event']; // Differentiate event types
     console.log('Received webhook event:', event.action);
 
     if (event.workflow_run && event.action === 'completed' && event.workflow_run.conclusion === 'failure') {
@@ -144,6 +145,44 @@ app.post('/api/webhooks/github', async (req, res) => {
         }
     }
 
+
+      // --- Handler for Pull Request (Prediction) ---
+    if (eventType === 'pull_request' && (event.action === 'opened' || event.action === 'synchronize')) {
+        const pr = event.pull_request;
+        console.log(`Processing PR #${pr.number} for prediction.`);
+
+        try {
+            // 1. Prepare features for the prediction model
+            const features = {
+                lines_added: pr.additions,
+                files_changed: pr.changed_files
+            };
+
+            // 2. Call the Python prediction service
+            const predictionResponse = await axios.post('http://localhost:5000/predict', features);
+            const { risk_score } = predictionResponse.data;
+
+            console.log(`Received risk score: ${risk_score} for PR #${pr.number}`);
+
+            // 3. Save prediction to our fake DB
+            const newPrediction = {
+                id: predictionsDB.length + 1,
+                repoId: event.repository.id,
+                prId: pr.id,
+                prNumber: pr.number,
+                prTitle: pr.title,
+                riskScore: risk_score,
+                status: 'Open',
+                createdAt: new Date().toISOString(),
+            };
+            predictionsDB.push(newPrediction);
+            console.log(`SUCCESS: Saved prediction for PR #${pr.number} to in-memory DB.`);
+
+        } catch (error) {
+            console.error('Error processing PR webhook:', error.response ? error.response.data : error.message);
+        }
+    }
+
     res.status(200).send('Webhook received.');
 });
 
@@ -173,6 +212,12 @@ app.get('/api/analyses/:repoId', isAuthenticated, (req, res) => {
     res.json(repoAnalyses);
 });
 
+
+app.get('/api/predictions/:repoId', isAuthenticated, (req, res) => {
+    const { repoId } = req.params;
+    const repoPredictions = predictionsDB.filter(p => p.repoId == parseInt(repoId) && p.status === 'Open');
+    res.json(repoPredictions);
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server listening on http://localhost:${PORT}`);
