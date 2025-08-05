@@ -11,6 +11,12 @@ const fetch = require('node-fetch'); // Using node-fetch v2
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+
+// ========= FAKE IN-MEMORY DATABASE =========
+// In a real application, this would be a proper database like PostgreSQL.
+// We'll use this array to store our analyses for now.
+const analysesDB = [];
+
 // ========= MIDDLEWARE SETUP =========
 // Use express.raw({type: 'application/json'}) for webhooks to verify signatures later
 // For now, we use express.json() for simplicity.
@@ -130,9 +136,20 @@ app.post('/api/webhooks/github', async (req, res) => {
 
             console.log('AI Analysis:', analysis);
 
-            // 4. TODO: Save the analysis to your database
-            // Example: db.query('INSERT INTO analyses (repo_id, github_run_id, status, conclusion, suggestion) VALUES (...)', [...]);
-            console.log(`SAVING to DB: repo: ${event.repository.id}, run: ${workflowRun.id}, conclusion: ${analysis.conclusion}`);
+            // 4. Save the analysis to our fake database
+            const newAnalysis = {
+                id: analysesDB.length + 1,
+                repoId: event.repository.id,
+                repoFullName: event.repository.full_name,
+                githubRunId: workflowRun.id,
+                status: workflowRun.conclusion,
+                conclusion: analysis.conclusion,
+                suggestion: analysis.suggestion,
+                rawLog: logText.substring(0, 30000), // Store the log itself
+                createdAt: new Date().toISOString(),
+            };
+            analysesDB.push(newAnalysis);
+            console.log(`SUCCESS: Saved analysis for run ${workflowRun.id} to in-memory DB.`);
 
         } catch (error) {
             console.error('Error processing webhook:', error.response ? error.response.data : error.message);
@@ -143,7 +160,7 @@ app.post('/api/webhooks/github', async (req, res) => {
 });
 
 
-// ========= PROTECTED API ROUTES (Unchanged) =========
+// ========= PROTECTED API ROUTES (Update) =========
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) { next(); } else { res.status(401).json({ message: 'Unauthorized' }); }
 };
@@ -162,8 +179,14 @@ app.get('/api/repos', isAuthenticated, async (req, res) => {
     }
 });
 
-// TODO: Add a new route to fetch analyses from the database
-// app.get('/api/analyses', isAuthenticated, async (req, res) => { ... });
+// ** NEW ROUTE **
+// Fetches all analyses for a specific repository
+app.get('/api/analyses/:repoId', isAuthenticated, (req, res) => {
+    const { repoId } = req.params;
+    const repoAnalyses = analysesDB.filter(analysis => analysis.repoId == parseInt(repoId));
+    res.json(repoAnalyses);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Backend server listening on http://localhost:${PORT}`);
