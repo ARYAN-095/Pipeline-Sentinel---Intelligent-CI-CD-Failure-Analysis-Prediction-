@@ -11,17 +11,12 @@ const fetch = require('node-fetch'); // Using node-fetch v2
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-
 // ========= FAKE IN-MEMORY DATABASE =========
-// In a real application, this would be a proper database like PostgreSQL.
-// We'll use this array to store our analyses for now.
 const analysesDB = [];
 
-// ========= MIDDLEWARE SETUP =========
-// Use express.raw({type: 'application/json'}) for webhooks to verify signatures later
-// For now, we use express.json() for simplicity.
-app.use('/api/webhooks/github', express.raw({ type: 'application/json' }));
-app.use(express.json());
+// ========= MIDDLEWARE SETUP (FIXED) =========
+// We only need one body parser. This will handle all JSON requests, including webhooks.
+app.use(express.json()); // <-- SIMPLIFIED: This is the only body parser we need.
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -47,9 +42,9 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
-// ========= AUTHENTICATION ROUTES (Unchanged) =========
+// ========= AUTHENTICATION ROUTES =========
 app.get('/api/auth/github', (req, res) => {
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=read:user%20repo%20admin:repo_hook`;
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=read:user%20repo%20workflow`;
   res.redirect(githubAuthUrl);
 });
 
@@ -62,7 +57,6 @@ app.get('/api/auth/github/callback', async (req, res) => {
       req.session.accessToken = access_token;
       const userResponse = await axios.get('https://api.github.com/user', { headers: { 'Authorization': `token ${access_token}` }});
       req.session.user = { id: userResponse.data.id, username: userResponse.data.login, avatar_url: userResponse.data.avatar_url };
-      // TODO: Save user to database here
       res.redirect('http://localhost:3000/dashboard');
     } else {
       res.status(400).send('Failed to obtain access token.');
@@ -75,28 +69,23 @@ app.get('/api/auth/github/callback', async (req, res) => {
 
 // ========= WEBHOOK HANDLER =========
 app.post('/api/webhooks/github', async (req, res) => {
-    // For now, we assume the webhook is valid. In production, you'd verify the signature.
-    const event = JSON.parse(req.body);
+    // FIXED: The body is now already a JSON object thanks to express.json(), so we don't need to parse it.
+    const event = req.body;
     console.log('Received webhook event:', event.action);
 
-    // We only care about completed workflow runs that have failed
     if (event.workflow_run && event.action === 'completed' && event.workflow_run.conclusion === 'failure') {
         const workflowRun = event.workflow_run;
         const repoFullName = event.repository.full_name;
-        const [owner, repo] = repoFullName.split('/');
-
+        
         console.log(`Processing failed workflow run ${workflowRun.id} for repo ${repoFullName}`);
 
         try {
-            // TODO: We need a way to get the installation's access token to act on its behalf.
-            // For now, we will use a placeholder token. In a real app, you'd get this from your app's installation logic.
-            const placeholderToken = req.session.accessToken || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+            const placeholderToken = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
             if (!placeholderToken) {
-              console.error("No access token available to process webhook.");
+              console.error("No Personal Access Token found in .env to process webhook.");
               return res.status(400).send("Cannot process webhook without authentication context.");
             }
 
-            // 1. Get the jobs for the failed workflow run
             const jobsUrl = workflowRun.jobs_url;
             const jobsResponse = await axios.get(jobsUrl, {
                 headers: { 'Authorization': `token ${placeholderToken}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -108,18 +97,18 @@ app.post('/api/webhooks/github', async (req, res) => {
                 return res.status(200).send('No failed job to analyze.');
             }
 
-            // 2. Get the log for the failed job
             const logUrl = `https://api.github.com/repos/${repoFullName}/actions/jobs/${failedJob.id}/logs`;
-            const logResponse = await axios.get(logUrl, {
-                headers: { 'Authorization': `token ${placeholderToken}`, 'Accept': 'application/vnd.github.v3+json' },
-                responseType: 'stream' // We get the redirect URL first
-            });
+            // GitHub API for logs redirects, so we need to handle that.
+            const logRedirectResponse = await axios.get(logUrl, {
+                headers: { 'Authorization': `token ${placeholderToken}`},
+                maxRedirects: 0, // Stop axios from following the redirect automatically
+                validateStatus: status => status === 302 // Expect a redirect
+            }).catch(err => err.response); // Catch the 302 redirect as a "response"
 
-            const actualLogUrl = logResponse.request.res.responseUrl;
+            const actualLogUrl = logRedirectResponse.headers.location;
             const logTextResponse = await fetch(actualLogUrl);
             const logText = await logTextResponse.text();
 
-            // 3. Analyze the log with Gemini
             const prompt = `
                 You are an expert software development assistant. Analyze the following CI/CD error log and provide a concise root cause and a suggested fix.
                 Format your response as a JSON object with two keys: "conclusion" and "suggestion".
@@ -136,7 +125,6 @@ app.post('/api/webhooks/github', async (req, res) => {
 
             console.log('AI Analysis:', analysis);
 
-            // 4. Save the analysis to our fake database
             const newAnalysis = {
                 id: analysesDB.length + 1,
                 repoId: event.repository.id,
@@ -145,7 +133,7 @@ app.post('/api/webhooks/github', async (req, res) => {
                 status: workflowRun.conclusion,
                 conclusion: analysis.conclusion,
                 suggestion: analysis.suggestion,
-                rawLog: logText.substring(0, 30000), // Store the log itself
+                rawLog: logText.substring(0, 30000),
                 createdAt: new Date().toISOString(),
             };
             analysesDB.push(newAnalysis);
@@ -160,7 +148,7 @@ app.post('/api/webhooks/github', async (req, res) => {
 });
 
 
-// ========= PROTECTED API ROUTES (Update) =========
+// ========= PROTECTED API ROUTES =========
 const isAuthenticated = (req, res, next) => {
   if (req.session.user) { next(); } else { res.status(401).json({ message: 'Unauthorized' }); }
 };
@@ -179,8 +167,6 @@ app.get('/api/repos', isAuthenticated, async (req, res) => {
     }
 });
 
-// ** NEW ROUTE **
-// Fetches all analyses for a specific repository
 app.get('/api/analyses/:repoId', isAuthenticated, (req, res) => {
     const { repoId } = req.params;
     const repoAnalyses = analysesDB.filter(analysis => analysis.repoId == parseInt(repoId));
