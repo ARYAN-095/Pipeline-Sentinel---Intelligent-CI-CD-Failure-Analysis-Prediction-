@@ -16,7 +16,7 @@ This tool is designed to solve two of the most frustrating problems in modern so
 1.  **Automated Root Cause Analysis:** When a build fails, instead of digging through thousands of lines of logs, Pipeline Sentinel uses an AI to analyze the failure and provides a concise, human-readable summary of the root cause and a suggested fix.
 2.  **Proactive Failure Prediction:** Before you even merge, Pipeline Sentinel analyzes new Pull Requests and generates a "risk score," predicting the likelihood that the changes will cause a CI/CD failure. This acts as an early warning system, helping your team catch potential issues before they block the main branch.
 
-![Dashboard Screenshot](https://placehold.co/800x450/2d3748/e2e8f0?text=Dashboard+Screenshot+Here)
+ 
 
 ---
 
