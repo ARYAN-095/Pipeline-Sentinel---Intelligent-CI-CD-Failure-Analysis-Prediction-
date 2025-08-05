@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 // ========= FAKE IN-MEMORY DATABASE =========
 const analysesDB = [];
+const predictionsDB = [];
 
 // ========= MIDDLEWARE SETUP (FIXED) =========
 // We only need one body parser. This will handle all JSON requests, including webhooks.
