@@ -11,13 +11,13 @@ const fetch = require('node-fetch'); // Using node-fetch v2
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ========= FAKE IN-MEMORY DATABASE =========
+// ========= FAKE IN-MEMORY DATABASES =========
 const analysesDB = [];
 const predictionsDB = [];
 
-// ========= MIDDLEWARE SETUP (FIXED) =========
-// We only need one body parser. This will handle all JSON requests, including webhooks.
-app.use(express.json()); // <-- SIMPLIFIED: This is the only body parser we need.
+// ========= MIDDLEWARE SETUP =========
+// This single body parser handles all JSON requests, including webhooks.
+app.use(express.json());
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -70,12 +70,12 @@ app.get('/api/auth/github/callback', async (req, res) => {
 
 // ========= WEBHOOK HANDLER =========
 app.post('/api/webhooks/github', async (req, res) => {
-    // FIXED: The body is now already a JSON object thanks to express.json(), so we don't need to parse it.
     const event = req.body;
-    const eventType = req.headers['x-github-event']; // Differentiate event types
-    console.log('Received webhook event:', event.action);
+    const eventType = req.headers['x-github-event'];
+    console.log(`Received webhook event: ${eventType}`);
 
-    if (event.workflow_run && event.action === 'completed' && event.workflow_run.conclusion === 'failure') {
+    // --- Handler for Workflow Run (Build Failure) ---
+    if (eventType === 'workflow_run' && event.action === 'completed' && event.workflow_run.conclusion === 'failure') {
         const workflowRun = event.workflow_run;
         const repoFullName = event.repository.full_name;
         
@@ -100,12 +100,11 @@ app.post('/api/webhooks/github', async (req, res) => {
             }
 
             const logUrl = `https://api.github.com/repos/${repoFullName}/actions/jobs/${failedJob.id}/logs`;
-            // GitHub API for logs redirects, so we need to handle that.
             const logRedirectResponse = await axios.get(logUrl, {
                 headers: { 'Authorization': `token ${placeholderToken}`},
-                maxRedirects: 0, // Stop axios from following the redirect automatically
-                validateStatus: status => status === 302 // Expect a redirect
-            }).catch(err => err.response); // Catch the 302 redirect as a "response"
+                maxRedirects: 0,
+                validateStatus: status => status === 302
+            }).catch(err => err.response);
 
             const actualLogUrl = logRedirectResponse.headers.location;
             const logTextResponse = await fetch(actualLogUrl);
@@ -142,30 +141,39 @@ app.post('/api/webhooks/github', async (req, res) => {
             console.log(`SUCCESS: Saved analysis for run ${workflowRun.id} to in-memory DB.`);
 
         } catch (error) {
-            console.error('Error processing webhook:', error.response ? error.response.data : error.message);
+            console.error('Error processing workflow_run webhook:', error.response ? error.response.data : error.message);
         }
     }
-
-
-      // --- Handler for Pull Request (Prediction) ---
-    if (eventType === 'pull_request' && (event.action === 'opened' || event.action === 'synchronize')) {
-        const pr = event.pull_request;
-        console.log(`Processing PR #${pr.number} for prediction.`);
+    // --- Handler for Pull Request (Prediction) ---
+    else if (eventType === 'pull_request' && (event.action === 'opened' || event.action === 'synchronize')) {
+        const pr_summary = event.pull_request;
+        console.log(`Processing PR #${pr_summary.number} for prediction.`);
 
         try {
-            // 1. Prepare features for the prediction model
+            // BEST PRACTICE: Fetch the full PR object to ensure all data is present.
+            // The webhook payload can be a summary and miss key details.
+            const placeholderToken = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+            if (!placeholderToken) {
+              console.error("No Personal Access Token found to fetch full PR details.");
+              return res.status(400).send("Cannot process webhook without authentication context.");
+            }
+
+            const pr_response = await axios.get(pr_summary.url, {
+                headers: { 'Authorization': `token ${placeholderToken}` }
+            });
+            const pr = pr_response.data; // Use this full, detailed PR object from now on.
+
             const features = {
                 lines_added: pr.additions,
+                lines_deleted: pr.deletions,
                 files_changed: pr.changed_files
             };
 
-            // 2. Call the Python prediction service
             const predictionResponse = await axios.post('http://localhost:5000/predict', features);
             const { risk_score } = predictionResponse.data;
 
             console.log(`Received risk score: ${risk_score} for PR #${pr.number}`);
 
-            // 3. Save prediction to our fake DB
             const newPrediction = {
                 id: predictionsDB.length + 1,
                 repoId: event.repository.id,
@@ -180,7 +188,7 @@ app.post('/api/webhooks/github', async (req, res) => {
             console.log(`SUCCESS: Saved prediction for PR #${pr.number} to in-memory DB.`);
 
         } catch (error) {
-            console.error('Error processing PR webhook:', error.response ? error.response.data : error.message);
+            console.error('Error processing pull_request webhook:', error.response ? error.response.data : error.message);
         }
     }
 
@@ -212,7 +220,6 @@ app.get('/api/analyses/:repoId', isAuthenticated, (req, res) => {
     const repoAnalyses = analysesDB.filter(analysis => analysis.repoId == parseInt(repoId));
     res.json(repoAnalyses);
 });
-
 
 app.get('/api/predictions/:repoId', isAuthenticated, (req, res) => {
     const { repoId } = req.params;
