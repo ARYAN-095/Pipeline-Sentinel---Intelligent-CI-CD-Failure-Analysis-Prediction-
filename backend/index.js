@@ -151,7 +151,6 @@ app.post('/api/webhooks/github', async (req, res) => {
 
         try {
             // BEST PRACTICE: Fetch the full PR object to ensure all data is present.
-            // The webhook payload can be a summary and miss key details.
             const placeholderToken = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
             if (!placeholderToken) {
               console.error("No Personal Access Token found to fetch full PR details.");
@@ -168,6 +167,9 @@ app.post('/api/webhooks/github', async (req, res) => {
                 lines_deleted: pr.deletions,
                 files_changed: pr.changed_files
             };
+            
+            // ADDED FOR DEBUGGING: Log the exact object we are sending.
+            console.log('Sending features to prediction service:', features);
 
             const predictionResponse = await axios.post('http://localhost:5000/predict', features);
             const { risk_score } = predictionResponse.data;
