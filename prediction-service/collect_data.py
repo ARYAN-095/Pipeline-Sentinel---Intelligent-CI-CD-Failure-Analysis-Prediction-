@@ -19,9 +19,10 @@ if not GITHUB_TOKEN:
 REPO_OWNER = 'pandas-dev'
 REPO_NAME = 'pandas'
 
-# Number of pages of pull requests to fetch (100 PRs per page).
-# Start with a smaller number like 2-3 for testing.
-PAGES_TO_FETCH = 3 
+# --- THE ONLY CHANGE IS HERE ---
+# We are now fetching a much larger dataset for our real model.
+# This will take a long time to run.
+PAGES_TO_FETCH = 35 # Changed from 3 to 25
 
 HEADERS = {
     'Authorization': f'token {GITHUB_TOKEN}',
@@ -63,7 +64,7 @@ def main():
     """Main function to collect data and save it to a CSV."""
     all_pr_data = []
 
-    print("Starting data collection...")
+    print("Starting large-scale data collection...")
     get_rate_limit()
 
     for page in range(1, PAGES_TO_FETCH + 1):
@@ -99,7 +100,7 @@ def main():
                 # Get the build status for the merge commit
                 build_status = get_build_status_for_commit(merge_commit_sha)
 
-                if build_status:
+                if build_status in ['success', 'failure']: # Only include successes and failures
                     pr_data = {
                         'pr_number': pr['number'],
                         'lines_added': pr['additions'],
@@ -108,7 +109,7 @@ def main():
                         'commits': pr['commits'],
                         'comments': pr['comments'],
                         'author_association': pr['author_association'],
-                        'build_status': 1 if build_status == 'failure' else 0 # Our target variable
+                        'build_status': 1 if build_status == 'failure' else 0
                     }
                     all_pr_data.append(pr_data)
                     print(f"  Processed PR #{pr['number']}: Build Status = {build_status}")
@@ -120,13 +121,15 @@ def main():
             print("Rate limit low. Stopping data collection.")
             break
 
-    # Convert the collected data into a pandas DataFrame and save it
     df = pd.DataFrame(all_pr_data)
-    df.to_csv('training_data.csv', index=False)
+    # Use a new filename to keep the old one as a backup
+    df.to_csv('training_data_large.csv', index=False)
     
-    print(f"\nData collection complete. Saved {len(df)} records to training_data.csv")
+    print(f"\nData collection complete. Saved {len(df)} records to training_data_large.csv")
     print("Sample of the data:")
     print(df.head())
+    print("\nNew Build Status Distribution:")
+    print(df['build_status'].value_counts())
 
 
 if __name__ == '__main__':
