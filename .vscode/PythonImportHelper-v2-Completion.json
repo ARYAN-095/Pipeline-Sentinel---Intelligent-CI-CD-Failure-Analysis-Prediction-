@@ -33,12 +33,37 @@
         "documentation": {}
     },
     {
+<<<<<<< HEAD
         "label": "joblib",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "joblib",
         "description": "joblib",
         "detail": "joblib",
+=======
+        "label": "LogisticRegression",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
+        "label": "LogisticRegression",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+>>>>>>> 34df2a9 (train model)
         "documentation": {}
     },
     {
@@ -85,6 +110,7 @@
         "documentation": {}
     },
     {
+<<<<<<< HEAD
         "label": "LogisticRegression",
         "importPath": "sklearn.linear_model",
         "description": "sklearn.linear_model",
@@ -93,6 +119,8 @@
         "documentation": {}
     },
     {
+=======
+>>>>>>> 34df2a9 (train model)
         "label": "classification_report",
         "importPath": "sklearn.metrics",
         "description": "sklearn.metrics",
@@ -109,6 +137,18 @@
         "documentation": {}
     },
     {
+<<<<<<< HEAD
+=======
+        "label": "joblib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "joblib",
+        "description": "joblib",
+        "detail": "joblib",
+        "documentation": {}
+    },
+    {
+>>>>>>> 34df2a9 (train model)
         "label": "warnings",
         "kind": 6,
         "isExtraImport": true,
@@ -122,7 +162,11 @@
         "kind": 2,
         "importPath": "prediction-service.app",
         "description": "prediction-service.app",
+<<<<<<< HEAD
         "peekOfCode": "def predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.\n    Uses the pre-trained model loaded from disk.\n    \"\"\"\n    if not model or not feature_columns:\n        return jsonify({'error': 'Model is not loaded. Please train the model first.'}), 500\n    try:\n        data = request.get_json()\n        print(f\"Received data for prediction: {data}\")",
+=======
+        "peekOfCode": "def predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.\n    Accepts a JSON payload with PR features.\n    \"\"\"\n    try:\n        data = request.get_json()\n        print(f\"Received data for prediction: {data}\")\n        # Extract features from the incoming request\n        lines_added = data.get('lines_added', 0)",
+>>>>>>> 34df2a9 (train model)
         "detail": "prediction-service.app",
         "documentation": {}
     },
@@ -131,7 +175,38 @@
         "kind": 5,
         "importPath": "prediction-service.app",
         "description": "prediction-service.app",
+<<<<<<< HEAD
         "peekOfCode": "app = Flask(__name__)\n# ================== LOAD THE TRAINED MODEL ==================\n# This is the core change. Instead of training a model when the app starts,\n# we now load our pre-trained model and the list of feature columns from the files.\n# This ensures that we are using the exact same model and features every time.\ntry:\n    model = joblib.load('risk_model.pkl')\n    print(\"✅ Successfully loaded trained model: 'risk_model.pkl'\")\n    feature_columns = joblib.load('feature_columns.pkl')\n    print(\"✅ Successfully loaded feature columns: 'feature_columns.pkl'\")",
+=======
+        "peekOfCode": "app = Flask(__name__)\n# ================== DUMMY MACHINE LEARNING MODEL ==================\n# In a real-world scenario, this model would be trained on thousands of\n# historical pull requests. For this project, we will create a simple,\n# rule-based \"dummy\" model that is surprisingly effective.\n# Let's imagine we have some pre-trained model. We'll simulate this.\n# We'll use a simple Logistic Regression model.\n# The features (X) would be something like:\n# [lines_added, lines_deleted, files_changed]\n# The target (y) would be: 0 (success) or 1 (failure)",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "X_train",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "X_train = pd.DataFrame({\n    'lines_added': [10, 100, 500, 20, 800, 1500],\n    'files_changed': [2, 5, 20, 3, 25, 40]\n})\n# 1 = failure, 0 = success\ny_train = [0, 0, 1, 0, 1, 1] \n# \"Train\" our model\nmodel = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "y_train",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "y_train = [0, 0, 1, 0, 1, 1] \n# \"Train\" our model\nmodel = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")\n# =================================================================\n@app.route('/predict', methods=['POST'])\ndef predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "model = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")\n# =================================================================\n@app.route('/predict', methods=['POST'])\ndef predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.\n    Accepts a JSON payload with PR features.\n    \"\"\"",
+>>>>>>> 34df2a9 (train model)
         "detail": "prediction-service.app",
         "documentation": {}
     },
