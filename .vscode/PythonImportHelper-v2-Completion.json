@@ -1,0 +1,344 @@
+[
+    {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "LogisticRegression",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
+        "label": "LogisticRegression",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "train_test_split",
+        "importPath": "sklearn.model_selection",
+        "description": "sklearn.model_selection",
+        "isExtraImport": true,
+        "detail": "sklearn.model_selection",
+        "documentation": {}
+    },
+    {
+        "label": "classification_report",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "accuracy_score",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "joblib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "joblib",
+        "description": "joblib",
+        "detail": "joblib",
+        "documentation": {}
+    },
+    {
+        "label": "warnings",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "warnings",
+        "description": "warnings",
+        "detail": "warnings",
+        "documentation": {}
+    },
+    {
+        "label": "predict",
+        "kind": 2,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "def predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.\n    Accepts a JSON payload with PR features.\n    \"\"\"\n    try:\n        data = request.get_json()\n        print(f\"Received data for prediction: {data}\")\n        # Extract features from the incoming request\n        lines_added = data.get('lines_added', 0)",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "app = Flask(__name__)\n# ================== DUMMY MACHINE LEARNING MODEL ==================\n# In a real-world scenario, this model would be trained on thousands of\n# historical pull requests. For this project, we will create a simple,\n# rule-based \"dummy\" model that is surprisingly effective.\n# Let's imagine we have some pre-trained model. We'll simulate this.\n# We'll use a simple Logistic Regression model.\n# The features (X) would be something like:\n# [lines_added, lines_deleted, files_changed]\n# The target (y) would be: 0 (success) or 1 (failure)",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "X_train",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "X_train = pd.DataFrame({\n    'lines_added': [10, 100, 500, 20, 800, 1500],\n    'files_changed': [2, 5, 20, 3, 25, 40]\n})\n# 1 = failure, 0 = success\ny_train = [0, 0, 1, 0, 1, 1] \n# \"Train\" our model\nmodel = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "y_train",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "y_train = [0, 0, 1, 0, 1, 1] \n# \"Train\" our model\nmodel = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")\n# =================================================================\n@app.route('/predict', methods=['POST'])\ndef predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "prediction-service.app",
+        "description": "prediction-service.app",
+        "peekOfCode": "model = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint(\"✅ Prediction model has been 'trained' and is ready.\")\n# =================================================================\n@app.route('/predict', methods=['POST'])\ndef predict():\n    \"\"\"\n    API endpoint to predict the failure risk of a pull request.\n    Accepts a JSON payload with PR features.\n    \"\"\"",
+        "detail": "prediction-service.app",
+        "documentation": {}
+    },
+    {
+        "label": "get_rate_limit",
+        "kind": 2,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "def get_rate_limit():\n    \"\"\"Checks the current GitHub API rate limit status.\"\"\"\n    response = requests.get('https://api.github.com/rate_limit', headers=HEADERS)\n    if response.status_code == 200:\n        rate_limit_data = response.json()['resources']['core']\n        print(f\"Rate Limit: {rate_limit_data['remaining']}/{rate_limit_data['limit']} requests remaining.\")\n        return rate_limit_data['remaining']\n    return 0\ndef get_build_status_for_commit(sha):\n    \"\"\"",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_build_status_for_commit",
+        "kind": 2,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "def get_build_status_for_commit(sha):\n    \"\"\"\n    For a given commit SHA, find the conclusion of the main CI check run.\n    This is the most crucial part: linking a PR to its build outcome.\n    \"\"\"\n    url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/commits/{sha}/check-runs'\n    response = requests.get(url, headers=HEADERS)\n    if response.status_code == 200:\n        check_runs = response.json().get('check_runs', [])\n        # We look for a common CI workflow name. This might need to be adjusted for other repos.",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "def main():\n    \"\"\"Main function to collect data and save it to a CSV.\"\"\"\n    all_pr_data = []\n    print(\"Starting data collection...\")\n    get_rate_limit()\n    for page in range(1, PAGES_TO_FETCH + 1):\n        print(f\"\\nFetching page {page}/{PAGES_TO_FETCH} of pull requests...\")\n        # Fetch closed pull requests (as they have a final build status)\n        prs_url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls?state=closed&per_page=100&page={page}'\n        response = requests.get(prs_url, headers=HEADERS)",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_TOKEN",
+        "kind": 5,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "GITHUB_TOKEN = os.getenv('GITHUB_PERSONAL_ACCESS_TOKEN')\nif not GITHUB_TOKEN:\n    raise ValueError(\"GitHub token not found. Please create a .env file with GITHUB_PERSONAL_ACCESS_TOKEN.\")\n# The repository we will collect data from. A large, active repo is best.\nREPO_OWNER = 'pandas-dev'\nREPO_NAME = 'pandas'\n# Number of pages of pull requests to fetch (100 PRs per page).\n# Start with a smaller number like 2-3 for testing.\nPAGES_TO_FETCH = 3 \nHEADERS = {",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "REPO_OWNER",
+        "kind": 5,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "REPO_OWNER = 'pandas-dev'\nREPO_NAME = 'pandas'\n# Number of pages of pull requests to fetch (100 PRs per page).\n# Start with a smaller number like 2-3 for testing.\nPAGES_TO_FETCH = 3 \nHEADERS = {\n    'Authorization': f'token {GITHUB_TOKEN}',\n    'Accept': 'application/vnd.github.v3+json'\n}\n# --- SCRIPT LOGIC ---",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "REPO_NAME",
+        "kind": 5,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "REPO_NAME = 'pandas'\n# Number of pages of pull requests to fetch (100 PRs per page).\n# Start with a smaller number like 2-3 for testing.\nPAGES_TO_FETCH = 3 \nHEADERS = {\n    'Authorization': f'token {GITHUB_TOKEN}',\n    'Accept': 'application/vnd.github.v3+json'\n}\n# --- SCRIPT LOGIC ---\ndef get_rate_limit():",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "PAGES_TO_FETCH",
+        "kind": 5,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "PAGES_TO_FETCH = 3 \nHEADERS = {\n    'Authorization': f'token {GITHUB_TOKEN}',\n    'Accept': 'application/vnd.github.v3+json'\n}\n# --- SCRIPT LOGIC ---\ndef get_rate_limit():\n    \"\"\"Checks the current GitHub API rate limit status.\"\"\"\n    response = requests.get('https://api.github.com/rate_limit', headers=HEADERS)\n    if response.status_code == 200:",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "HEADERS",
+        "kind": 5,
+        "importPath": "prediction-service.collect_data",
+        "description": "prediction-service.collect_data",
+        "peekOfCode": "HEADERS = {\n    'Authorization': f'token {GITHUB_TOKEN}',\n    'Accept': 'application/vnd.github.v3+json'\n}\n# --- SCRIPT LOGIC ---\ndef get_rate_limit():\n    \"\"\"Checks the current GitHub API rate limit status.\"\"\"\n    response = requests.get('https://api.github.com/rate_limit', headers=HEADERS)\n    if response.status_code == 200:\n        rate_limit_data = response.json()['resources']['core']",
+        "detail": "prediction-service.collect_data",
+        "documentation": {}
+    },
+    {
+        "label": "df",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df = pd.read_csv('training_data.csv')\nprint(\"Dataset Info:\")\ndf.info()\nprint(\"\\nStatistical Summary:\")\nprint(df.describe())\n# Check the balance of our target variable ('build_status')\n# In most software projects, failures (1) are much rarer than successes (0).\n# This is called an \"imbalanced dataset.\"\nprint(\"\\nBuild Status Distribution:\")\nprint(df['build_status'].value_counts())",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df = pd.get_dummies(df, columns=['author_association'], prefix='author')\n# For simplicity, we'll fill any potential missing values with 0.\ndf.fillna(0, inplace=True)\nprint(\"Data after one-hot encoding 'author_association':\")\nprint(df.head())\nprint(\"-\" * 40)\n# --- 3. Feature Engineering ---\nprint(\"\\n--- Step 3: Feature Engineering ---\")\n# Let's create some more intelligent features from the raw data.\n# A simple 'change_size' feature might be more predictive than additions/deletions alone.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df['change_size']",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df['change_size'] = df['lines_added'] + df['lines_deleted']\n# The ratio of additions to deletions can indicate if a PR is a new feature vs. a refactor.\n# We add 1 to the denominator to avoid division by zero.\ndf['add_delete_ratio'] = df['lines_added'] / (df['lines_deleted'] + 1)\nprint(\"Data after adding new features ('change_size', 'add_delete_ratio'):\")\nprint(df[['pr_number', 'change_size', 'add_delete_ratio']].head())\nprint(\"-\" * 40)\n# --- 4. Model Training ---\nprint(\"\\n--- Step 4: Model Training ---\")\n# Define our target variable (what we want to predict)",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df['add_delete_ratio']",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df['add_delete_ratio'] = df['lines_added'] / (df['lines_deleted'] + 1)\nprint(\"Data after adding new features ('change_size', 'add_delete_ratio'):\")\nprint(df[['pr_number', 'change_size', 'add_delete_ratio']].head())\nprint(\"-\" * 40)\n# --- 4. Model Training ---\nprint(\"\\n--- Step 4: Model Training ---\")\n# Define our target variable (what we want to predict)\ny = df['build_status']\n# Define our features (the data we use to make the prediction)\n# We drop non-feature columns like the PR number and the original target.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "y",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "y = df['build_status']\n# Define our features (the data we use to make the prediction)\n# We drop non-feature columns like the PR number and the original target.\nX = df.drop(columns=['pr_number', 'build_status'])\n# Save the feature column names. This is CRITICAL for our Flask app later.\n# It ensures the live data has the same columns in the same order as the training data.\nfeature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "X",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "X = df.drop(columns=['pr_number', 'build_status'])\n# Save the feature column names. This is CRITICAL for our Flask app later.\n# It ensures the live data has the same columns in the same order as the training data.\nfeature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).\n# test_size=0.2 means we'll use 20% of the data for testing.\n# stratify=y is important for imbalanced datasets. It ensures the train and test sets\n# have the same proportion of failures and successes as the original dataset.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "feature_columns",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "feature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).\n# test_size=0.2 means we'll use 20% of the data for testing.\n# stratify=y is important for imbalanced datasets. It ensures the train and test sets\n# have the same proportion of failures and successes as the original dataset.\n# --- FIX for ValueError ---\n# Check if stratification is possible. The smallest class must have at least 2 members.\nstratify_option = y",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "stratify_option",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "stratify_option = y\nif y.value_counts().min() < 2:\n    print(\"\\nWarning: The least populated class has fewer than 2 members. Stratification is not possible.\")\n    print(\"Proceeding without stratification. For a robust model, collect more data with diverse outcomes.\")\n    stratify_option = None\n# --- END FIX ---\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42, stratify=stratify_option\n)\nprint(f\"Training set size: {X_train.shape[0]} samples\")",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "model = LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42)\nmodel.fit(X_train, y_train)\nprint(\"Model training complete.\")\nprint(\"-\" * 40)\n# --- 5. Model Evaluation ---\nprint(\"\\n--- Step 5: Model Evaluation ---\")\n# Make predictions on the unseen test data\ny_pred = model.predict(X_test)\n# Evaluate the model's performance\nprint(f\"Accuracy: {accuracy_score(y_test, y_pred):.2f}\")",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "y_pred",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "y_pred = model.predict(X_test)\n# Evaluate the model's performance\nprint(f\"Accuracy: {accuracy_score(y_test, y_pred):.2f}\")\nprint(\"\\nClassification Report:\")\n# This report is the most important output. It tells us how the model\n# performs on the positive class (failures).\n# - Precision: Of all the PRs we predicted would fail, how many actually failed?\n# - Recall: Of all the PRs that actually failed, how many did we catch?\nprint(classification_report(y_test, y_pred))\nprint(\"-\" * 40)",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    }
+]
