@@ -1,24 +1,19 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.metrics import classification_report
-from imblearn.over_sampling import SMOTE # <-- Import SMOTE
+from sklearn.metrics import classification_report, make_scorer, recall_score
+from imblearn.over_sampling import SMOTE
 import joblib
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# --- Steps 1-3 are the same: Load, Clean, Engineer ---
+# --- Steps 1-3: Load, Clean, Engineer ---
 print("--- Step 1-3: Loading, Cleaning, and Feature Engineering ---")
-try:
-    df = pd.read_csv('training_data_large.csv')
-except FileNotFoundError:
-    print("Error: 'training_data_large.csv' not found. Please run collect_data.py first.")
-    exit()
-
+df = pd.read_csv('training_data_large.csv')
 status_counts = df['build_status'].value_counts()
 df = pd.get_dummies(df, columns=['author_association'], prefix='author')
 df.fillna(0, inplace=True)
@@ -33,33 +28,63 @@ y = df['build_status']
 X = df.drop(columns=['pr_number', 'build_status'])
 feature_columns = X.columns.tolist()
 joblib.dump(feature_columns, 'feature_columns.pkl')
-
-# IMPORTANT: We split the data BEFORE applying SMOTE.
-# This ensures our test set contains only real, unseen data.
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
-print(f"Original training set size: {X_train.shape[0]} samples")
-print(f"Original training distribution:\n{y_train.value_counts()}")
 print("-" * 40)
 
-# --- 5. Apply SMOTE to the Training Data ---
+# --- 5. Apply SMOTE ---
 print("\n--- Step 5: Applying SMOTE to Balance Training Data ---")
 smote = SMOTE(random_state=42)
-# We fit and resample ONLY the training data
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+print("SMOTE applied to training data.")
+print("-" * 40)
 
-print(f"Resampled training set size: {X_train_resampled.shape[0]} samples")
-print(f"Resampled training distribution:\n{y_train_resampled.value_counts()}")
+# --- 6. Hyperparameter Tuning for Random Forest (NEW STEP) ---
+print("\n--- Step 6: Hyperparameter Tuning for Random Forest ---")
+
+# Define the grid of parameters to search through
+param_grid = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, 30, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'bootstrap': [True, False]
+}
+
+# We want to find the settings that give the best RECALL for the failure class.
+recall_scorer = make_scorer(recall_score, pos_label=1)
+
+# Set up the randomized search. It will try 50 different combinations.
+rf = RandomForestClassifier(random_state=42)
+rf_random_search = RandomizedSearchCV(
+    estimator=rf,
+    param_distributions=param_grid,
+    n_iter=50,  # Number of combinations to try
+    cv=3,       # 3-fold cross-validation
+    verbose=1,
+    random_state=42,
+    n_jobs=-1,  # Use all available CPU cores
+    scoring=recall_scorer # Optimize for recall!
+)
+
+# Run the search on our balanced data
+rf_random_search.fit(X_train_resampled, y_train_resampled)
+
+print("\nBest parameters found for Random Forest:")
+print(rf_random_search.best_params_)
+tuned_rf = rf_random_search.best_estimator_
 print("-" * 40)
 
 
-# --- 6. Train and Evaluate Models on Resampled Data ---
-print("\n--- Step 6: Training and Evaluating Models ---")
-# Note: We no longer need class_weight='balanced' because the data is now balanced.
+# --- 7. Train and Evaluate Final Models ---
+print("\n--- Step 7: Training and Evaluating Final Models ---")
+scale_pos_weight = status_counts[0] / status_counts[1]
+
+# We now include our new, tuned Random Forest in the comparison
 models = {
     "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
-    "Random Forest": RandomForestClassifier(random_state=42),
+    "Tuned Random Forest": tuned_rf, # Use the best one we found
     "XGBoost": XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss')
 }
 
@@ -68,9 +93,7 @@ best_recall = -1
 
 for name, model in models.items():
     print(f"\n--- Training {name} on SMOTE data ---")
-    # Train on the new, balanced data
     model.fit(X_train_resampled, y_train_resampled)
-    # Evaluate on the original, untouched test data
     y_pred = model.predict(X_test)
     
     print(f"Results for {name}:")
@@ -83,11 +106,11 @@ for name, model in models.items():
         best_model = model
 
 print("=" * 40)
-print(f"🏆 Best model after SMOTE is '{best_model.__class__.__name__}' with a failure recall of {best_recall:.2f}.")
+print(f"🏆 Best model is '{best_model.__class__.__name__}' with a failure recall of {best_recall:.2f}.")
 print("=" * 40)
 
-# --- 7. Save the Best Model ---
-print("\n--- Step 7: Saving the Best Model ---")
+# --- 8. Save the Best Model ---
+print("\n--- Step 8: Saving the Best Model ---")
 joblib.dump(best_model, 'risk_model.pkl')
 print("Trained model saved to risk_model.pkl")
 print("-" * 40)
