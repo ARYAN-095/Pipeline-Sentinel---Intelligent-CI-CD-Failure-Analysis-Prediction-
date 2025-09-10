@@ -1,0 +1,147 @@
+ 
+
+`ngrok` is the special tool that creates a temporary, public URL for your local backend server, so that GitHub's webhooks can find it on the internet.
+
+Here is a complete, step-by-step guide to get it running again.
+
+-----
+
+### **Step 1: Find the `ngrok.exe` File**
+
+First, you need to find the `ngrok` program you downloaded. It is almost certainly in your **`Downloads`** folder.
+
+  * Open your File Explorer and go to your `Downloads` folder.
+  * Look for a file named `ngrok.exe`.
+
+### **Step 2: Open a Terminal in That Folder**
+
+Now, we need to open a command prompt or terminal *in the same folder* where `ngrok.exe` is located.
+
+  * Go into your `Downloads` folder (or wherever you found `ngrok.exe`).
+  * Right-click on an empty white space inside the folder.
+  * From the menu, select **"Open in Terminal"** or **"Open PowerShell window here"**.
+
+### **Step 3: Run the `ngrok` Command**
+
+Now that you have a terminal open in the correct location, run the following command. The `./` is important as it tells the terminal to run the program from the current folder.
+
+```bash
+./ngrok http 3001
+```
+
+  * **Why `3001`?** Because that is the port your backend server (`node index.js`) is running on.
+
+### **Step 4: Get Your Public URL**
+
+When the command runs successfully, it will take over your terminal and you will see a status screen that looks like this:
+
+```
+ngrok                                               (Ctrl+C to quit)
+
+Session Status                online
+Account                       Your Name (Plan: Free)
+...
+Forwarding                    https://a1b2-c3d4-e5f6.ngrok-free.app -> http://localhost:3001
+...
+```
+
+The URL you need is the one on the **`Forwarding`** line.
+
+1.  In the example above, the URL is `https://a1b2-c3d4-e5f6.ngrok-free.app`.
+2.  **Copy your unique URL** from your terminal.
+3.  Go to your GitHub repository's webhook settings and paste this new URL into the "Payload URL" field, making sure to add `/api/webhooks/github` at the end.
+
+The most important rule: **keep this terminal window open\!** If you close it, the tunnel stops working, and you will need to start over from Step 2.
+
+
+
+
+
+// How to start the project 
+:- Of course. It's a great time to do a full "cold start" of the project, just like you would on any new day. This will be your standard launch checklist.
+
+To run your complete project, you need to start all three of your services and the `ngrok` tunnel. You will need **four separate terminal windows** open at the same time.
+
+Here is your step-by-step guide.
+
+-----
+
+### **Step 1: Start the Backend Server**
+
+This is the central hub of your application.
+
+1.  Open your **first terminal**.
+2.  Navigate to your backend folder:
+    ```bash
+    cd path/to/your/project/intelligent-ci-analyzer/backend
+    ```
+3.  Start the server:
+    ```bash
+    node index.js
+    ```
+4.  **Confirmation:** Leave this terminal open. You should see the message `Backend server listening on http://localhost:3001`.
+
+-----
+
+### **Step 2: Start the Prediction Service**
+
+This is your machine learning model's API.
+
+1.  Open your **second terminal**.
+2.  Navigate to your prediction service folder:
+    ```bash
+    cd path/to/your/project/intelligent-ci-analyzer/prediction-service
+    ```
+3.  **Activate the virtual environment**. This is a crucial step\!
+      * On Windows: `.\venv\Scripts\activate`
+      * On macOS/Linux: `source venv/bin/activate`
+4.  Start the Python server:
+    ```bash
+    python app.py
+    ```
+5.  **Confirmation:** Leave this terminal open. You should see messages like `Successfully loaded trained model...` and `Running on http://127.0.0.1:5000`.
+
+-----
+
+### **Step 3: Start the Frontend Application**
+
+This is the user interface you interact with.
+
+1.  Open your **third terminal**.
+2.  Navigate to your frontend folder:
+    ```bash
+    cd path/to/your/project/intelligent-ci-analyzer/frontend
+    ```
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+4.  **Confirmation:** Leave this terminal open. It will tell you the site is ready on `http://localhost:3000`. You can now open this URL in your browser.
+
+-----
+
+### **Step 4: Start the `ngrok` Tunnel**
+
+This is the bridge that allows GitHub to talk to your local backend.
+
+1.  Open your **fourth terminal**.
+2.  Navigate to the folder where you downloaded `ngrok.exe` (usually your `Downloads` folder).
+3.  Run the command to start the tunnel to your backend:
+    ```bash
+    ./ngrok http 3001
+    ```
+4.  **Confirmation:** Your terminal will be taken over by the `ngrok` status screen.
+
+**CRITICAL Final Step:** Look at the `ngrok` "Forwarding" URL. It will be a new, random URL. You **must** copy this new URL and update the "Payload URL" in your GitHub webhook settings, or GitHub won't be able to send notifications to your project.
+
+### Your Setup Checklist
+
+Once you're done, your setup should look like this:
+
+  * ✅ **Terminal 1:** Running the Node.js backend.
+  * ✅ **Terminal 2:** Running the Python prediction service.
+  * ✅ **Terminal 3:** Running the Next.js frontend.
+  * ✅ **Terminal 4:** Running the `ngrok` tunnel.
+  * ✅ Your GitHub webhook is updated with the latest `ngrok` URL.
+
+Your entire project is now running and ready for you to use.

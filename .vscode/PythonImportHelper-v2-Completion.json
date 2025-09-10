@@ -102,6 +102,22 @@
         "documentation": {}
     },
     {
+        "label": "train_test_split",
+        "importPath": "sklearn.model_selection",
+        "description": "sklearn.model_selection",
+        "isExtraImport": true,
+        "detail": "sklearn.model_selection",
+        "documentation": {}
+    },
+    {
+        "label": "LogisticRegression",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
         "label": "LogisticRegression",
         "importPath": "sklearn.linear_model",
         "description": "sklearn.linear_model",
@@ -143,6 +159,22 @@
     },
     {
         "label": "recall_score",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "classification_report",
+        "importPath": "sklearn.metrics",
+        "description": "sklearn.metrics",
+        "isExtraImport": true,
+        "detail": "sklearn.metrics",
+        "documentation": {}
+    },
+    {
+        "label": "accuracy_score",
         "importPath": "sklearn.metrics",
         "description": "sklearn.metrics",
         "isExtraImport": true,
@@ -415,6 +447,87 @@
         "importPath": "prediction-service.train_model",
         "description": "prediction-service.train_model",
         "peekOfCode": "best_recall = -1\nfor name, model in models.items():\n    print(f\"\\n--- Training {name} on SMOTE data ---\")\n    model.fit(X_train_resampled, y_train_resampled)\n    y_pred = model.predict(X_test)\n    print(f\"Results for {name}:\")\n    report = classification_report(y_test, y_pred, output_dict=True)\n    print(classification_report(y_test, y_pred))\n    recall_failure = report.get('1', {}).get('recall', 0)\n    if recall_failure > best_recall:",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df = pd.read_csv('training_data.csv')\nprint(\"Dataset Info:\")\ndf.info()\nprint(\"\\nStatistical Summary:\")\nprint(df.describe())\n# Check the balance of our target variable ('build_status')\n# In most software projects, failures (1) are much rarer than successes (0).\n# This is called an \"imbalanced dataset.\"\nprint(\"\\nBuild Status Distribution:\")\nprint(df['build_status'].value_counts())",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df = pd.get_dummies(df, columns=['author_association'], prefix='author')\n# For simplicity, we'll fill any potential missing values with 0.\ndf.fillna(0, inplace=True)\nprint(\"Data after one-hot encoding 'author_association':\")\nprint(df.head())\nprint(\"-\" * 40)\n# --- 3. Feature Engineering ---\nprint(\"\\n--- Step 3: Feature Engineering ---\")\n# Let's create some more intelligent features from the raw data.\n# A simple 'change_size' feature might be more predictive than additions/deletions alone.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df['change_size']",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df['change_size'] = df['lines_added'] + df['lines_deleted']\n# The ratio of additions to deletions can indicate if a PR is a new feature vs. a refactor.\n# We add 1 to the denominator to avoid division by zero.\ndf['add_delete_ratio'] = df['lines_added'] / (df['lines_deleted'] + 1)\nprint(\"Data after adding new features ('change_size', 'add_delete_ratio'):\")\nprint(df[['pr_number', 'change_size', 'add_delete_ratio']].head())\nprint(\"-\" * 40)\n# --- 4. Model Training ---\nprint(\"\\n--- Step 4: Model Training ---\")\n# Define our target variable (what we want to predict)",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "df['add_delete_ratio']",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "df['add_delete_ratio'] = df['lines_added'] / (df['lines_deleted'] + 1)\nprint(\"Data after adding new features ('change_size', 'add_delete_ratio'):\")\nprint(df[['pr_number', 'change_size', 'add_delete_ratio']].head())\nprint(\"-\" * 40)\n# --- 4. Model Training ---\nprint(\"\\n--- Step 4: Model Training ---\")\n# Define our target variable (what we want to predict)\ny = df['build_status']\n# Define our features (the data we use to make the prediction)\n# We drop non-feature columns like the PR number and the original target.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "y",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "y = df['build_status']\n# Define our features (the data we use to make the prediction)\n# We drop non-feature columns like the PR number and the original target.\nX = df.drop(columns=['pr_number', 'build_status'])\n# Save the feature column names. This is CRITICAL for our Flask app later.\n# It ensures the live data has the same columns in the same order as the training data.\nfeature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "X",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "X = df.drop(columns=['pr_number', 'build_status'])\n# Save the feature column names. This is CRITICAL for our Flask app later.\n# It ensures the live data has the same columns in the same order as the training data.\nfeature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).\n# test_size=0.2 means we'll use 20% of the data for testing.\n# stratify=y is important for imbalanced datasets. It ensures the train and test sets\n# have the same proportion of failures and successes as the original dataset.",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "feature_columns",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "feature_columns = X.columns.tolist()\njoblib.dump(feature_columns, 'feature_columns.pkl')\nprint(f\"Saved {len(feature_columns)} feature columns to feature_columns.pkl\")\n# Split the data into a training set (to teach the model) and a testing set (to evaluate it).\n# test_size=0.2 means we'll use 20% of the data for testing.\n# stratify=y is important for imbalanced datasets. It ensures the train and test sets\n# have the same proportion of failures and successes as the original dataset.\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42, stratify=y\n)",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "model = LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42)\nmodel.fit(X_train, y_train)\nprint(\"Model training complete.\")\nprint(\"-\" * 40)\n# --- 5. Model Evaluation ---\nprint(\"\\n--- Step 5: Model Evaluation ---\")\n# Make predictions on the unseen test data\ny_pred = model.predict(X_test)\n# Evaluate the model's performance\nprint(f\"Accuracy: {accuracy_score(y_test, y_pred):.2f}\")",
+        "detail": "prediction-service.train_model",
+        "documentation": {}
+    },
+    {
+        "label": "y_pred",
+        "kind": 5,
+        "importPath": "prediction-service.train_model",
+        "description": "prediction-service.train_model",
+        "peekOfCode": "y_pred = model.predict(X_test)\n# Evaluate the model's performance\nprint(f\"Accuracy: {accuracy_score(y_test, y_pred):.2f}\")\nprint(\"\\nClassification Report:\")\n# This report is the most important output. It tells us how the model\n# performs on the positive class (failures).\n# - Precision: Of all the PRs we predicted would fail, how many actually failed?\n# - Recall: Of all the PRs that actually failed, how many did we catch?\nprint(classification_report(y_test, y_pred))\nprint(\"-\" * 40)",
         "detail": "prediction-service.train_model",
         "documentation": {}
     }

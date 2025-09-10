@@ -7,6 +7,9 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+
+![Dashboard Screenshot](./dashboard.png)
+
 Pipeline Sentinel is a web-based tool that integrates with your GitHub repositories to bring intelligence to your CI/CD pipelines. It moves you from a reactive to a proactive workflow by automating error analysis and predicting high-risk changes.
 
 ### **What it does**
@@ -17,7 +20,7 @@ This tool is designed to solve two of the most frustrating problems in modern so
 2.  **Proactive Failure Prediction:** Before you even merge, Pipeline Sentinel analyzes new Pull Requests and generates a "risk score," predicting the likelihood that the changes will cause a CI/CD failure. This acts as an early warning system, helping your team catch potential issues before they block the main branch.
 
  
-
+![Dashboard Screenshot](./result.png)
 ---
 
 ### **How It Works**
