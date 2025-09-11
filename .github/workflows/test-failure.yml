@@ -1,9 +1,11 @@
 name: Test Failure Workflow
 
 "on":
+  workflow_dispatch:
   push:
     branches:
       - main # Or whatever your main branch is called
+    
 
 jobs:
   fail-job:
